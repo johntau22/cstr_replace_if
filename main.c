@@ -1,54 +1,132 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 
+size_t cstr_len(char*);
 char* cstr_find_if(char*, char*);
 char* cstr_replace_if(char*, char*, char*);
 
 int main()
 {
-	char* init_cstr = "it is this what it is!";
+	char* str = "it is this what it is";
 	char* substr1 = "is";
-	char* substr2 = "doesn't";
+	char* substr2 = "where";
+	char* result = cstr_replace_if(str, substr1, substr2);
 
-	char* first_occ = cstr_find_if(init_cstr, substr1);
-
-	printf("%s\n", first_occ);
-
+	if (result == NULL)
+	{
+		printf("No matches found");
+		printf("%c", '\n');
+		return 1;
+	}
+	else
+	{
+		printf(result);
+		//printf("%c", '\n');
+	}
+	
 	return 0;
 }
 
+/* replace all ocurrences of substr1 in cstr_init to substr2 */
+char* cstr_replace_if(char* cstr_init, char* substr1, char* substr2)
+{
+	size_t cstr_init_len = cstr_len(cstr_init);
+	size_t substr1_len = cstr_len(substr1);
+	size_t substr2_len = cstr_len(substr2);
+
+	/* register substr1 ocurrence positions */
+	char** occ_pos = malloc(cstr_init_len * sizeof(char*)); /* max case is every single char in cstr_init matches with substr1*/
+	
+	size_t occ_count = 0;
+	char* c = cstr_init;
+	char* s = substr1;
+	
+	if (cstr_find_if(c, s) == NULL)
+		return cstr_init; /* exit, no matches found */
+
+	char* occ;
+	while (occ = cstr_find_if(c, s))
+	{
+		*occ_pos++ = occ;
+		++occ_count;
+		c = occ + substr1_len;
+	}
+	*occ_pos = NULL;
+	*occ_pos -= (occ_count+1);
+	
+	if (occ_count < cstr_init_len)
+	{
+		occ_pos = realloc(occ_pos, occ_count * sizeof(char*)); /* free unused memory */
+	}
+
+	/* calculate new c_string size */
+	size_t new_cstr_len = cstr_init_len;
+	if (substr2_len > substr1_len)
+	{
+		size_t new_cstr_len = cstr_init_len + (substr2_len - substr1_len) * occ_count + 1;
+	}
+
+	char* new_cstr = malloc(new_cstr_len * sizeof(char));
+
+	int k = 0;
+	while (cstr_init[k] != '\0')
+	{
+		if (&cstr_init[k] == *occ_pos)
+		{
+			for (int m = 0; m < (int)substr2_len; ++m)
+			{
+				new_cstr[k] = substr2[m];
+				++k;
+			}
+		}
+		else
+		{
+			new_cstr[k] = cstr_init[k];
+		}
+		++k;
+	}
+
+	new_cstr[new_cstr_len - 1] = '\0';
+
+	return new_cstr;
+}
+
+/* return cstr length */
+size_t cstr_len(char* cstr)
+{
+	size_t len = 0;
+	while (cstr[len] != '\0')
+		++len;
+
+	return len;
+}
+
+/* return pointer to first occurence of substr in str or NULL if no matches found */
 char* cstr_find_if(char* str, char* substr)
 {
-	size_t sub_len = 0;
-	for (char* c = substr; *c != '\0'; ++c)
-		++sub_len;
-
-	for (char* c = str; *c != '\0'; ++c)
+	size_t sub_len = cstr_len(substr);
+	
+	int i = 0;
+	while (str[i] != '\0')
 	{
-		if (*c == *substr)
+		if (str[i] == substr[0])
 		{
-			char* start = c;
-			size_t counter = 0;
-			for (char* j = substr; *j != '\0'; ++j)
+			int j = 0;
+			while (substr[j] != '\0')
 			{
-				if (*c++ != *j)
+				if (str[i] != substr[j])
 				{
-					c = start;
+					i -= j; /* rollback to initial position on first char match */
 					break;
 				}
-				++counter;
+				++i, ++j;
 			}
 
-			if (counter == sub_len)
-				return start;
+			if (j == sub_len)
+				return &str[i-j];
 		}
+		++i;
 	}
 
 	return NULL;
-}
-
-char* cstr_replace_if(char* init_cstr, char* substr1, char* substr2)
-{
-	;
 }
