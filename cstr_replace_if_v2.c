@@ -38,14 +38,14 @@ bool cstr_replace_if(char* cstr_init, char* substr1, char* substr2, char* outCst
 	size_t substr2_len = cstr_len(substr2);
 
 	/* register substr1 ocurrence positions */
-	char** occ_pos = malloc(cstr_init_len * sizeof(char*)); /* max case is every single char in cstr_init matches with substr1*/
+	char** occ_pos = malloc(cstr_init_len * sizeof(char*)); /* max case is every single char in cstr_init matches with substr1 */
 
 	size_t occ_count = 0;
 	char* c = cstr_init;
 	char* s = substr1;
 
 	if (cstr_find_if(c, s) == NULL)
-		return true;	/* exit, no matches found */
+		return true;	// exit, no matches found
 
 	char* occ;
 	char** pos = occ_pos;
