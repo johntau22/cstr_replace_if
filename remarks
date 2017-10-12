@@ -4,3 +4,9 @@
 4) в тебе вже є всі входження  в occ_pos, не потрібно шукати все по другому разу, їх можна вирахувати
 5) ctr_find_if можна простіше зробити, іноді краще зробити змінну ніж потім їх виховувати назад
 Ну або функцію що копіює n символів можете самі написати
+
+
+https://stackoverflow.com/questions/1106957/passing-an-array-by-reference-in-c
+https://stackoverflow.com/questions/10468573/passing-a-char-array-by-reference-in-c
+https://stackoverflow.com/questions/19646512/passing-an-array-by-reference-in-c
+https://stackoverflow.com/questions/39310915/pass-char-as-reference-in-c
