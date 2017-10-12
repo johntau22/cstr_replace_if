@@ -1,37 +1,37 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 size_t cstr_len(char*);
 char* cstr_find_if(char*, char*);
-bool cstr_replace_if(char*, char*, char*, char**, short*);
+void paste_str(char*, char*, int);
+bool cstr_replace_if(char*, char*, char*, char*, short*);
 
 int main()
 {
 	char* initCstr = "it is this what it is";
 	char* subStr1 = "is";
 	char* subStr2 = "where";
-	char outStr[1024];
-	short outSize = 1024;
+	unsigned short outSize = 200;
+	char* outStr = malloc(outSize * sizeof(char));
 
-	cstr_replace_if(initCstr, subStr1, subStr2, &outStr, &outSize);
-
-	if (result == NULL)
+	if (cstr_replace_if(initCstr, subStr1, subStr2, outStr, &outSize))
 	{
-		printf("No matches found");
-		printf("%c", '\n');
-		return 1;
+		puts(outStr);
+		//printf("%c", '\n');
 	}
 	else
 	{
-		printf(result);
+		printf("Processing error.");
 		printf("%c", '\n');
 	}
 
 	return 0;
 }
 
-/* replace all ocurrences of substr1 in cstr_init to substr2 */
-char* cstr_replace_if(char* cstr_init, char* substr1, char* substr2, char** outCstr, short* outSize)
+/* replace all ocurrences of substr1 in cstr_init to substr2.
+true if outCstr long enough to contain changes or no changes made, false otherwise */
+bool cstr_replace_if(char* cstr_init, char* substr1, char* substr2, char* outCstr, short* outSize)
 {
 	size_t cstr_init_len = cstr_len(cstr_init);
 	size_t substr1_len = cstr_len(substr1);
@@ -45,58 +45,59 @@ char* cstr_replace_if(char* cstr_init, char* substr1, char* substr2, char** outC
 	char* s = substr1;
 
 	if (cstr_find_if(c, s) == NULL)
-		return cstr_init; /* exit, no matches found */
+		return true;	/* exit, no matches found */
 
 	char* occ;
+	char** pos = occ_pos;
 	while (occ = cstr_find_if(c, s))
 	{
-		*occ_pos++ = occ;
+		*pos++ = occ;
 		++occ_count;
 		c = occ + substr1_len;
-	}
-	occ_pos -= occ_count;
-
-	if (occ_count < cstr_init_len)
-	{
-		occ_pos = realloc(occ_pos, occ_count * sizeof(char*));	// free unused memory
 	}
 
 	/* calculate new c_string size */
 	size_t new_cstr_len = cstr_init_len;
 	if (substr2_len != substr1_len)
-	{
 		new_cstr_len = cstr_init_len + (substr2_len - substr1_len) * occ_count + 1;
-	}
 
-	char* new_cstr = malloc(new_cstr_len * sizeof(char));
-
-	int i = 0, j = 0;	// indices for init_cstr and new_cstr
-	while (cstr_init[i] != '\0')
+	if (new_cstr_len > (unsigned) *outSize)
 	{
-		if (&cstr_init[i] == *occ_pos)
-		{
-			int m = 0;
-			while (m < (int)substr2_len)
-			{
-				new_cstr[j + m] = substr2[m];
-				++m;
-			}
-			++occ_pos;
-			i += substr1_len;
-			j += substr2_len;
-		}
-		else
-		{
-			new_cstr[j++] = cstr_init[i++];
-		}
+		return false;	// not enough space for string with substitutions
 	}
+	else
+	{
+		pos = occ_pos;
+		int i = 0, j = 0;	// indices for init_cstr and new_cstr
+		while (cstr_init[i] != '\0')
+		{
+			if (&cstr_init[i] == *pos)
+			{
+				paste_str(&outCstr[j], substr2, substr2_len);
+				++pos;
+				i += substr1_len;
+				j += substr2_len;
+			}
+			else
+			{
+				outCstr[j++] = cstr_init[i++];
+			}
+		}
+		outCstr[new_cstr_len - 1] = '\0';
+		
+		free(occ_pos);
 
-	occ_pos -= occ_count;
-	free(occ_pos);
+		return true;
+	}
+}
 
-	new_cstr[new_cstr_len - 1] = '\0';
-
-	return new_cstr;
+/* paste substr with n legth into string starting from paste_start */
+void paste_str(char* paste_start, char* substr, int n)
+{
+	for (int j = 0; j < n; ++j)
+	{
+		paste_start[j] = substr[j];
+	}
 }
 
 /* return cstr length */
@@ -120,13 +121,8 @@ char* cstr_find_if(char* str, char* substr)
 		if (str[i] == substr[0])
 		{
 			int j = 0;
-			while (substr[j] != '\0')
+			while (str[i] == substr[j] && substr[j] != '\0')
 			{
-				if (str[i] != substr[j])
-				{
-					i -= j; /* rollback to initial position on first char match */
-					break;
-				}
 				++i, ++j;
 			}
 
